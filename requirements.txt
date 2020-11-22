@@ -1,0 +1,6 @@
+antiorm==1.2.1
+autopep8==1.5.4
+db==0.1.1
+db-sqlite3==0.0.1
+pycodestyle==2.6.0
+toml==0.10.2
