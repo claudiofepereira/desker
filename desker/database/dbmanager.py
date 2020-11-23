@@ -1,15 +1,55 @@
-# CRUD for userApps module
+# CRUD for desker database
 import sqlite3
 
 
+class ManageDB:
+    def create_db_connection(db_file):
+        """Creates a connection to a database
+
+        Args:
+            db_file ([type]): [db file location]
+        """
+        conn = None
+        try:
+            conn = sqlite3.connect(db_file)
+            print(
+                f"Connection to database {db_file} created.", sqlite3.version)
+        except sqlite3.Error as error:
+            print(error)
+        finally:
+            if conn:
+                conn.close()
+
+    def create_table_user_apps(db_file):
+
+        conn = None
+        try:
+            conn = sqlite3.connect(db_file)
+            cursor = conn.cursor()
+            cursor.execute("DROP TABLE IF EXISTS userApps")
+            query = """CREATE TABLE userApps(
+                    ID INT PRIMARY KEY NOT NULL,
+                    appName TEXT NOT NULL UNIQUE, 
+                    location TEXT NOT NULL UNIQUE, 
+                    numTimesOpened INT NOT NULL )"""
+            cursor.execute(query)
+            conn.commit()
+            print("Database table created successfully.")
+        except sqlite3.Error as error:
+            print("Error occurred while creating table userApps", error)
+        finally:
+            if conn:
+                conn.close()
+
+
 class Setters:
-    def insert_new_app(id, appName, location):
+    def insert_new_app(id, app_name, app_location):
         """Inserts new default app in the database.
 
         Args:
             id ([int]): [New app ID, should be incremental],
-            appName ([string]): [App name in the system],
-            location ([string]): [Location of the app executable]
+            app_name ([string]): [App name in the system],
+            app_location ([string]): [Location of the app executable]
         """
         conn = None
         try:
@@ -18,19 +58,21 @@ class Setters:
                      'VALUES (:ID, :appName, :location, :numTimesOpened);')
             params = {
                 'ID': id,
-                'appName': appName,
-                'location': location,
+                'appName': app_name,
+                'location': app_location,
                 'numTimesOpened': 1
             }
             conn.execute(query, params)
             conn.commit()
+            cursor = conn.execute(f"SELECT * from userApps")
             print("Successfully inserted new app into userApps")
+            return cursor.fetchall()
+
         except sqlite3.Error as error:
             print("Failed to insert new app into userApps", error)
         finally:
             if (conn):
                 conn.close()
-                print("sqlite connection is closed")
 
 
 class Getters:
@@ -50,7 +92,6 @@ class Getters:
         finally:
             if (conn):
                 conn.close()
-                print("sqlite connection is closed")
 
     def get_app_by_id(id):
         """Obtains all information about the app passed by id
@@ -71,7 +112,6 @@ class Getters:
         finally:
             if (conn):
                 conn.close()
-                print("sqlite connection is closed")
 
     def get_app_name_by_id(id):
         """Obtains the name of the app passed by id
@@ -93,7 +133,6 @@ class Getters:
         finally:
             if (conn):
                 conn.close()
-                print("sqlite connection is closed")
 
     def get_app_location_by_id(id):
         """Obtains the app location of the app passed by id
@@ -115,7 +154,6 @@ class Getters:
         finally:
             if (conn):
                 conn.close()
-                print("sqlite connection is closed")
 
     def get_app_num_times_opened_by_id(id):
         """Obtains the number of times the app passed by id was opened
@@ -137,16 +175,15 @@ class Getters:
         finally:
             if (conn):
                 conn.close()
-                print("sqlite connection is closed")
 
 
 class Updaters:
-    def update_app_name(id, appName):
+    def update_app_name(id, app_name):
         """Update the name of the app with the ID passed as argument.
 
         Args:
             id ([int]): [ID of the app to update]
-            appName ([string]): [Name to update the app with]
+            app_name ([string]): [Name to update the app with]
 
         Returns:
             [list]: [Information of the app updated]
@@ -155,7 +192,7 @@ class Updaters:
         try:
             conn = sqlite3.connect('desker.db')
             conn.execute(
-                f"UPDATE userApps SET appName = '{appName}'' WHERE ID = {id}")
+                f"UPDATE userApps SET appName = '{app_name}'' WHERE ID = {id}")
             conn.commit()
             cursor = conn.execute(f"SELECT * FROM userApps WHERE ID = {id}")
             return cursor.fetchall()
@@ -164,14 +201,13 @@ class Updaters:
         finally:
             if (conn):
                 conn.close()
-                print("sqlite connection is closed")
 
-    def update_app_location(id, location):
+    def update_app_location(id, app_location):
         """Update the location of the app with the ID passed as argument.
 
         Args:
             id ([int]): [ID of the app to update]
-            location ([string]): [location to update the app with]
+            app_location ([string]): [location to update the app with]
 
         Returns:
             [list]: [Information of the app updated]
@@ -180,7 +216,7 @@ class Updaters:
         try:
             conn = sqlite3.connect('desker.db')
             conn.execute(
-                f"UPDATE userApps SET location = '{location}'' WHERE ID = {id}")
+                f"UPDATE userApps SET location = '{app_location}'' WHERE ID = {id}")
             conn.commit()
             cursor = conn.execute(f"SELECT * FROM userApps WHERE ID = {id}")
             return cursor.fetchall()
@@ -189,14 +225,13 @@ class Updaters:
         finally:
             if (conn):
                 conn.close()
-                print("sqlite connection is closed")
 
-    def update_app_nums_time_opened(id, numTimesOpened):
-        """Update the location of the app with the ID passed as argument.
+    def update_app_nums_time_opened(id, num_times_opened):
+        """Update the number of times the app was opened with the app ID passed as argument.
 
         Args:
             id ([int]): [ID of the app to update]
-            location ([string]): [location to update the app with]
+            num_times_opened ([string]): [location to update the app with]
 
         Returns:
             [list]: [Information of the app updated]
@@ -205,7 +240,7 @@ class Updaters:
         try:
             conn = sqlite3.connect('desker.db')
             conn.execute(
-                f"UPDATE userApps SET numTimesOpened = '{numTimesOpened}'' WHERE ID = {id}")
+                f"UPDATE userApps SET numTimesOpened = '{num_times_opened}'' WHERE ID = {id}")
             conn.commit()
             cursor = conn.execute(f"SELECT * FROM userApps WHERE ID = {id}")
             return cursor.fetchall()
@@ -214,7 +249,6 @@ class Updaters:
         finally:
             if (conn):
                 conn.close()
-                print("sqlite connection is closed")
 
 
 class Removers:
@@ -233,10 +267,10 @@ class Removers:
             conn.execute(f"DELETE from userApps where ID = {id};")
             conn.commit()
             cursor = conn.execute("SELECT * from userApps")
+            print(f"App with id {id} was removed successfully")
             return cursor.fetchall()
         except sqlite3.Error as error:
             print("Error occurred while deleting data from userApps", error)
         finally:
             if (conn):
                 conn.close()
-                print("sqlite connection is closed")
